@@ -1,0 +1,265 @@
+
+    <!DOCTYPE html>
+    <html lang='en' style='height: 258mm;'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+        <style>
+            *{
+                box-sizing: border-box;
+            }
+            body{
+                font-family:'Poppins'; 
+                box-sizing: border-box; 
+                font-size: 12px; 
+                height: 258mm;
+            }
+            p{
+                margin: 2px;
+            }
+            th,td {
+                width: 33.33%;
+            }
+            .container{
+                padding: 16px; 
+                position: relative; 
+                height: 258mm;
+            }
+            .field-heading{
+                color: #777;
+            }
+            .indented-text{
+            margin-left: 16px;
+            }
+            .header-last-col h2{
+                font-size: 14px;
+            }
+            .float-right{
+                text-align: right; 
+                width: 50%; 
+                float: right;
+            }
+            .float-left{
+                text-align: left; 
+                width: 50%; 
+                float: left;
+            }
+            .customer-name,
+            .customer-address,
+            .business-name,
+            .business-gstin{
+                border-bottom: 1px solid #bfbfbf; 
+                margin-bottom: 16px;
+                margin-right: 10%;
+            }
+            .delivery-heading{
+                margin-right: 10%;
+                margin-botton: 4px;
+            }
+            .business-gstin{
+                margin-bottom: 0;
+            }
+            .business-name{
+                margin-top: 8px;
+            }
+            .order-date,
+            .invoice-number,
+            .invoice-date,
+            .order-id{
+                border-bottom: 1px solid #bfbfbf; 
+                margin-bottom: 16px; 
+                margin-left: 60%;
+            }
+            .header-table{
+                width: 100%;
+                border-bottom: 1px solid #777; 
+                padding-bottom: 8px;
+            }
+            .gross-row{
+                border-top: 1px solid #bfbfbf; 
+            }
+            .header-first-col{
+                width: auto;
+            }
+            .header-mid-col{
+                width: 60%;
+                padding-left: 16px;
+            }
+            .header-last-col{
+                min-width: 25%;
+            }
+            .first-col{
+                text-align: start; 
+                padding: 8px 0 8px 8px;
+            }
+            .mid-col{
+                text-align: right;
+            }
+            .last-col{
+                text-align: end; 
+                padding: 8px 8px 8px 0;
+            }
+            .sub-title{
+                font-size: 10px; 
+                color: #777;
+            }
+            .order-details::after,
+            .bill-details::after{
+                content: '';
+                display: table;
+                clear: both;
+            }
+            .page-footer{
+                position: absolute; 
+                bottom: 4px;
+                width: 95%;
+            }
+            .footer-table{
+                width: 100%; 
+                border-bottom: 1px solid #777;
+                margin-bottom: 8px; 
+                padding-bottom: 8px;
+            }
+            footer li{
+                font-size: 8px;
+                color: #777;
+                list-style-type: none;
+            }
+        </style>
+    </head>
+    
+        <body>
+            <div class='container'>
+                <header class='page-header'>
+                    <table class='header-table'>
+                        <tr>
+                            <td class='header-first-col'>
+                                <img src=http://static.azulman-test.com/images/logo.png alt='azulman_logo' width='80px' height='80px'>
+                            </td>
+                            <td class='header-mid-col'>
+                                <div class='reg-details-container' style='width: 100%;'>
+                                    <div class='reg-details' style='width: 100%; line-height: 18px;'>
+                                        <h3 style='margin: 2px; font-size: 18px;'>SBE Technologies India Pvt. Ltd.</h3>
+                                        <div class='reg-address'>
+                                            <p style='font-size: 12px; line-height: 18px;'>D-104, Himalaya Valley, Hindustan Colony, Amravati Road, Nagpur - 440033, Maharashtra (27)</p>
+                                        </div>
+                                        <div class='reg-gstin' style='font-size: 12px;'>
+                                            <p>
+                                                <span>GSTIN: 27AAWCS3275Q1Z6</span><span class='indented-text'>Contact No: +91-7387102985</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class='header-last-col' style='text-align: right;'>
+                                <h2 style='font-family:'Poppins''>PAYMENT RECEIPT ON BEHALF OF SERVICE PROFESSIONAL</h2>
+                            </td>
+                        </tr>
+                    </table>
+                </header>
+    
+            <main>
+                <div class='order-details' style='padding-top: 16px;'>
+                    <div class='customer-details float-left'>
+                        <div class='customer-name'>
+                            <p class='field-heading'>Customer Name</p>
+                            <p>Sameer Deshmukh</p>
+                        </div>
+                        <div class='customer-address'>
+                            <p class='field-heading'>Customer Address</p>
+                            <p>Joshiwadi, Gopal Nagar, Nagpur, Maharashtra, India - 440022</p>
+                        </div>
+            <div class='delivery-heading'>
+                <p><h3>DELIVERY SERVICE PROVIDER<h3><p>
+            </div>
+            
+                            <div class='business-name'>
+                                <p class='field-heading'>Business Name</p>
+                                <p>Nikhil Bandu Perker</p>
+                            </div>
+                        </div>
+                        <div class='invoice-details float-right'>
+                                <div class='invoice-date'>
+                                    <p class='field-heading'>Invoice Date</p>
+                                    <p>25-Oct-2023</p>
+                                </div>
+                                <div class='invoice-number'>
+                                    <p class='field-heading'>Invoice No.</p>
+                                    <p>INVEL2510202302</p>
+                                </div>
+                                <div class='order-date'>
+                                    <p class='field-heading'>Order Date</p>
+                                    <p>23-Oct-2023</p>
+                                </div>
+                                <div class='order-id'>
+                                    <p class='field-heading'>Order ID</p>
+                                    <p>NGPEL2510202305</p>
+                                </div>
+                            </div>
+                    </div>
+                <div class='bill-details' style='margin-top: 16px; position: static;'>
+                    <div class='bill-details-headline'>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tr style='background: #f5f5f5; font-family: Poppins;'>
+                                <th class='first-col'>Description of Items</th>
+                                <th class='mid-col'></th>
+                                <th class='last-col'>Amount</th>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class='bill-details-main'>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                        
+        <tr>
+            <td class='first-col'><p>Parts Charges - Plumber</p>
+            
+            </td>
+                <td class='mid-col'>Gross Amount</td>
+                <td class='last-col'>150.00</td>
+            </tr>
+                <tr>
+                <td class='first-col'></td>
+                <td class='mid-col'>Discount</td>
+                <td class='last-col'>
+            - ₹ 0.00</td>
+            </tr>
+            
+                <td class='first-col'></td>
+                <td class='mid-col'>Taxable Amount</td>
+                <td class='last-col'>
+            ₹ 150.00</td>
+            </tr>
+            </table>
+                    </div>
+                    <div class='bill-details-footer'>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tr style='background: #f5f5f5;'>
+                                <th class='first-col'>Total</th>
+                                <th class='mid-col'></th>
+                                <th class='last-col'>₹ 150.00</th>
+                            </tr>
+                            <tr>
+                                <th></th><th></th><th class='last-col'>One Hundred Fifty Rupees Only</th>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        
+                <footer class='page-footer'>
+                    <table class='footer-table'>
+                        <tr>
+                            <td>
+                                <p>Subject to Nagpur Jurisdiction</p>
+                            </td>
+                            <td style='text-align: right;'>
+                                <p><strong>For SBE Technologies India Pvt. Ltd.</strong></p>
+                            </td>
+                        </tr>
+                    </table><li>*This is a computer-generated document. No signature is required.</li><li>*Kindly ask the Service Provider to provide the original invoice for the materials that were purchased on your behalf - if available.</li>
+                </footer>
+            </div>
+        </body>
+        </html>
+    
