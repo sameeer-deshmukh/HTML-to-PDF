@@ -9,7 +9,7 @@ from flask_mail import Mail, Message
 
 
 
-
+# from Credentials file - Start
 BASE_DIR = Path(__file__).resolve().parent
 BASE_DIR_STORAGE = Path(__file__).resolve().parent
 
@@ -32,8 +32,8 @@ credentials_conf_json_file = json.load(credentials_conf_file)
 AWS_ACCESS_KEY_ID = str(credentials_conf_json_file["aws_access_key_id"])
 AWS_SECRET_ACCESS_KEY = str(credentials_conf_json_file["aws_secret_access_key"])
 
-
-
+# from Credentials file - End
+# Part bill details - API call ----------------------
 isPartsAdded = True
 
 # template names - here
@@ -509,7 +509,6 @@ session = boto3.Session(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 s3 = session.resource('s3')
-s3 = boto3.client('s3', aws_access_key_id=str(AWS_ACCESS_KEY_ID) , aws_secret_access_key=str(AWS_SECRET_ACCESS_KEY))
 
 BUCKET_NAME = 'azulmanuserdata'
 KEY = BUCKET_FOLDER_NAME+'transactionimages/'+order_id+'/'
@@ -532,15 +531,15 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 mail = Mail(app)
 
 bucket = s3.Bucket(BUCKET_NAME)
-
+s3_files = []
 for obj in bucket.objects.filter(Prefix = KEY):
     key = obj.key
     if len(BUCKET_FOLDER_NAME) == 0:
         x = key.split('/',2)[2]
     else:
         x = key.split('/',3)[3]
-    file.append(x)
-    bucket.download_file(obj.key,str(Path.joinpath(BASE_DIR_STORAGE, x)))
+    s3_files.append(x)
+    # bucket.download_file(obj.key,str(Path.joinpath(BASE_DIR_STORAGE, x)))
 
 msg = Message(mail_subject, sender = (EMAIL_NAME, EMAIL), recipients = [customer_email])
 msg.html ="""
@@ -569,7 +568,7 @@ msg.html ="""
     </html>
 """
 
-for filename in file:
+for filename in s3_files:
     if filename == 'invoice.pdf':
         docc_type = "application/pdf"
     else:
@@ -577,7 +576,7 @@ for filename in file:
     with app.open_resource(filename) as fp:
         msg.attach(filename,docc_type,fp.read())
 mail.send(msg)
-for filename in file:
+for filename in s3_files:
     os.remove(str(Path.joinpath(BASE_DIR_STORAGE, filename)))
 	# except botocore.exceptions.ClientError as e:
 	# 	if e.response['Error']['Code'] == "404":
