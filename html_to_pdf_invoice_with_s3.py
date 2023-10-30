@@ -1,12 +1,40 @@
 import pdfkit
 from pathlib import Path
 import json
+import os
+import boto3
+import botocore
 from flask import Flask
 from flask_mail import Mail, Message
-import os
+
+
+
+
+BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR_STORAGE = Path(__file__).resolve().parent
+
+email_config_file = open(str(Path.joinpath(BASE_DIR, "credentials/email_config.json")))
+email_config_file_json = json.load(email_config_file)
+
+LOGO_URL = str(email_config_file_json["LOGO_URL"])
+EMAIL = str(email_config_file_json["EMAIL_HOST_USER"])
+PASSWORD = str(email_config_file_json["EMAIL_HOST_PASSWORD"])
+EMAIL_NAME = str(email_config_file_json["EMAIL_NAME"])
+
+FACEBOOK = str(email_config_file_json["FACEBOOK"])
+TWITTER = str(email_config_file_json["TWITTER"])
+INSTAGRAM = str(email_config_file_json["INSTAGRAM"])
+BUCKET_FOLDER_NAME = str(email_config_file_json["BUCKET_FOLDER_NAME"])
+
+credentials_conf_file = open(str(Path.joinpath(BASE_DIR, "credentials/aws_credentials.json")))
+credentials_conf_json_file = json.load(credentials_conf_file)
+
+AWS_ACCESS_KEY_ID = str(credentials_conf_json_file["aws_access_key_id"])
+AWS_SECRET_ACCESS_KEY = str(credentials_conf_json_file["aws_secret_access_key"])
+
+
 
 isPartsAdded = True
-
 
 # template names - here
 templates = ['SBE', 'TECH', 'PARTS'] if isPartsAdded else ['SBE', 'TECH']
@@ -53,6 +81,7 @@ business_gstin = ''
 # customer details - API call ----------------------
 customer_name = 'Sameer Deshmukh'
 customer_address = 'Joshiwadi, Gopal Nagar, Nagpur, Maharashtra, India - 440022'
+customer_email = 'sameeer.deshmukh@gmail.com'
 
 # invoice & order - id & date - API call ----------------------
 invoice_date = '25-Oct-2023'
@@ -473,74 +502,83 @@ options = {
     'margin-bottom': '0mm',
     'margin-left': '0mm'
 }
-pdfkit.from_file(files, 'multi_page_with_var_final.pdf', options=options, configuration=config)
+pdfkit.from_file(files, str(Path.joinpath(BASE_DIR_STORAGE, "invoice.pdf")), options=options, configuration=config)
 
+session = boto3.Session(
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+)
+s3 = session.resource('s3')
+s3 = boto3.client('s3', aws_access_key_id=str(AWS_ACCESS_KEY_ID) , aws_secret_access_key=str(AWS_SECRET_ACCESS_KEY))
 
+BUCKET_NAME = 'azulmanuserdata'
+KEY = BUCKET_FOLDER_NAME+'transactionimages/'+order_id+'/'
 
+mail_subject = 'AZULMAN Invoice'
 
-def sendInvoice():
-    BASE_DIR = Path(__file__).resolve().parent
-    BASE_DIR_STORAGE = Path(__file__).resolve().parent
+s3.meta.client.upload_file(Filename=str(Path.joinpath(BASE_DIR_STORAGE, "invoice.pdf")), Bucket=BUCKET_NAME, Key=KEY+'invoice.pdf')
 
-    email_config_file = open(str(Path.joinpath(BASE_DIR, "credentials/email_config.json")))
-    email_config_file_json = json.load(email_config_file)
+app = Flask(__name__)
+app.app_context().push()
 
-    LOGO_URL = str(email_config_file_json["LOGO_URL"])
-    EMAIL = str(email_config_file_json["EMAIL_HOST_USER"])
-    PASSWORD = str(email_config_file_json["EMAIL_HOST_PASSWORD"])
-    EMAIL_NAME = str(email_config_file_json["EMAIL_NAME"])
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = EMAIL
+app.config['MAIL_PASSWORD'] = PASSWORD
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['CORS_HEADERS'] = 'Content-Type'
 
-    FACEBOOK = str(email_config_file_json["FACEBOOK"])
-    TWITTER = str(email_config_file_json["TWITTER"])
-    INSTAGRAM = str(email_config_file_json["INSTAGRAM"])
+mail = Mail(app)
 
-    app = Flask(__name__)
-    app.app_context().push()
+bucket = s3.Bucket(BUCKET_NAME)
 
-    app.config['MAIL_SERVER']='smtp.gmail.com'
-    app.config['MAIL_PORT'] = 465
-    app.config['MAIL_USERNAME'] = EMAIL
-    app.config['MAIL_PASSWORD'] = PASSWORD
-    app.config['MAIL_USE_TLS'] = False
-    app.config['MAIL_USE_SSL'] = True
-    app.config['CORS_HEADERS'] = 'Content-Type'
+for obj in bucket.objects.filter(Prefix = KEY):
+    key = obj.key
+    if len(BUCKET_FOLDER_NAME) == 0:
+        x = key.split('/',2)[2]
+    else:
+        x = key.split('/',3)[3]
+    file.append(x)
+    bucket.download_file(obj.key,str(Path.joinpath(BASE_DIR_STORAGE, x)))
 
-    mail = Mail(app)
+msg = Message(mail_subject, sender = (EMAIL_NAME, EMAIL), recipients = [customer_email])
+msg.html ="""
+    <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="x-apple-disable-message-reformatting">
+            <title></title>
+        </head>
+        <style>html, body{width: 100%; padding: 16px; height: fit-content; box-sizing: border-box; font-size: 14px;}img{margin: 0; display: block;}.msg-div{line-height: 0.5em;}.passAssistance{float: right; margin-top: 80px; font-weight: bolder;}</style>
+        <body style=" font-family: Arial, Helvetica, sans-serif; padding: 16px; width: 100%;padding: 16px; height: fit-content; box-sizing: border-box; margin-top:16px; margin-bottom: 16px; background-color: white;margin: 0 auto; max-width: 600px;"> <div style="width: inherit; padding-bottom: 10px; border-bottom: 1px solid #bfbfbf;"> 
+        <img src="""+LOGO_URL+""" alt="azulman_logo" width="100px" height="100px" style="display: inline-block;">
+        <div style="float: right; margin-top: 86px;">Date: """+invoice_date+"""</div></div><br>
+        <p style="font-size: large; font-weight: bold;">Hi """+customer_name+""", Thank you for ordering on AZULMAN!</p>
+        <p style="line-height: 1.5em;">Payment received for the Order ID: """+order_id+"""</p><br>
+        <hr>
+        <p style="text-align:center">
+        <a href="""+FACEBOOK+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Facebook" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/facebook.png" title="Facebook" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"> </a>
+        <a href="""+TWITTER+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Twitter" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/twitter.png" title="Twitter" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"></a>
+        <a href="""+INSTAGRAM+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Instagram" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/instagram.png" title="Instagram" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"></a>
+        </p>
+        <p style="text-align:center; line-height: 1.5em;"> Need Help? You may <a href="mailto:"""+EMAIL+"""" style="cursor: pointer; color: #007bff; text-decoration: none;" onmouseover='this.style.textDecoration="none";this.style.color="#3e4095"' onmouseout='this.style.textDecoration="none";this.style.color="#007bff"' rel="noreferrer" target="_blank">email us</a> or visit us <a href="https://www.azulman.com" style="cursor: pointer; color: #007bff; text-decoration: none;" onmouseover='this.style.textDecoration="none";this.style.color="#3e4095"' onmouseout='this.style.textDecoration="none";this.style.color="#007bff"' rel="noreferrer" target="_blank">here</a> </p>
+        </div></body>
+    </html>
+"""
 
-
-    msg = Message("Multipage Invoice Testing", sender = (EMAIL_NAME,EMAIL), recipients = ["sameeer.deshmukh@gmail.com"])
-    msg.html ="""
-        <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width">
-                <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                <meta name="x-apple-disable-message-reformatting">
-                <title></title>
-            </head>
-            <style>html, body{width: 100%; padding: 16px; height: fit-content; box-sizing: border-box; font-size: 14px;}img{margin: 0; display: block;}.msg-div{line-height: 0.5em;}.passAssistance{float: right; margin-top: 80px; font-weight: bolder;}</style>
-            <body style=" font-family: Arial, Helvetica, sans-serif; padding: 16px; width: 100%;padding: 16px; height: fit-content; box-sizing: border-box; margin-top:16px; margin-bottom: 16px; background-color: white;margin: 0 auto; max-width: 600px;"> <div style="width: inherit; padding-bottom: 10px; border-bottom: 1px solid #bfbfbf;"> 
-            <img src="""+LOGO_URL+""" alt="azulman_logo" width="100px" height="100px" style="display: inline-block;">
-            <div style="float: right; margin-top: 86px;">Date: """+"""27-Oct-2023"""+"""</div></div><br>
-            <p style="font-size: large; font-weight: bold;">Hi """+"""Sameeer Deshmukh"""+""", Thank you for ordering on AZULMAN!</p>
-            <p style="line-height: 1.5em;">Payment received for the Order ID: """+"""NGPEL27102023001"""+"""</p><br>
-            <hr>
-            <p style="text-align:center">
-            <a href="""+FACEBOOK+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Facebook" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/facebook.png" title="Facebook" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"> </a>
-            <a href="""+TWITTER+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Twitter" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/twitter.png" title="Twitter" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"></a>
-            <a href="""+INSTAGRAM+""" style="padding: 5px 10px;text-decoration:none" rel="noreferrer" target="_blank"><img alt="Instagram" src="https://azulmanimages.s3.ap-south-1.amazonaws.com/instagram.png" title="Instagram" width="25" border="0" style="border:0;height:auto;outline:none;text-decoration:none"></a>
-            </p>
-            <p style="text-align:center; line-height: 1.5em;"> Need Help? You may <a href="mailto:"""+EMAIL+"""" style="cursor: pointer; color: #007bff; text-decoration: none;" onmouseover='this.style.textDecoration="none";this.style.color="#3e4095"' onmouseout='this.style.textDecoration="none";this.style.color="#007bff"' rel="noreferrer" target="_blank">email us</a> or visit us <a href="https://www.azulman.com" style="cursor: pointer; color: #007bff; text-decoration: none;" onmouseover='this.style.textDecoration="none";this.style.color="#3e4095"' onmouseout='this.style.textDecoration="none";this.style.color="#007bff"' rel="noreferrer" target="_blank">here</a> </p>
-            </div></body>
-        </html>
-    """
-
-    filename = "multi_page_with_var_final.pdf"
-    docc_type = "application/pdf"
-    with app.open_resource("multi_page_with_var_final.pdf") as fp:
+for filename in file:
+    if filename == 'invoice.pdf':
+        docc_type = "application/pdf"
+    else:
+        docc_type = "image/jpg"
+    with app.open_resource(filename) as fp:
         msg.attach(filename,docc_type,fp.read())
-    mail.send(msg)
+mail.send(msg)
+for filename in file:
     os.remove(str(Path.joinpath(BASE_DIR_STORAGE, filename)))
-
-
-# sendInvoice()
+	# except botocore.exceptions.ClientError as e:
+	# 	if e.response['Error']['Code'] == "404":
+	# 		print("The object does not exist.")
